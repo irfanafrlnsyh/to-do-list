@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <title>To-Do List dengan Group/Category, Timestamp, No SJ, dan Tanggal Barang Sampai</title>
+<!-- saved from url=(0066)file:///C:/Users/Reinordt/Downloads/to%20do%20list%20-%20Copy.html -->
+<html lang="id"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>To-Do List Realtime Firebase</title>
+
+  <!-- Firebase SDK -->
+  <script src="./To-Do List Realtime Firebase_files/firebase-app-compat.js.download"></script>
+  <script src="./To-Do List Realtime Firebase_files/firebase-database-compat.js.download"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -30,6 +35,7 @@
       border-radius: 4px;
       border: 1px solid #ccc;
       flex-grow: 1;
+      min-width: 150px;
     }
     button {
       padding: 10px 14px;
@@ -40,6 +46,7 @@
       color: white;
       border-radius: 4px;
       flex-shrink: 0;
+      transition: background 0.3s ease;
     }
     button:hover {
       background: #0056b3;
@@ -55,35 +62,33 @@
       border-radius: 8px;
       padding: 15px;
       width: 320px;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .category-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
       margin-bottom: 10px;
+      gap: 10px;
     }
     .category-header input {
-      width: 70%;
-      padding: 6px;
-      font-size: 16px;
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 14px;
       border-radius: 4px;
       border: 1px solid #ccc;
     }
     .category-header button {
       background: #dc3545;
-      padding: 6px 10px;
       font-size: 14px;
+      padding: 6px 10px;
       border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      margin-left: 8px;
-      white-space: nowrap;
+      transition: background 0.3s ease;
+      flex-shrink: 0;
     }
     .category-header button:hover {
-      background: #b52a37;
+      background: #a71d2a;
     }
     ul {
       list-style: none;
@@ -92,6 +97,8 @@
       flex-grow: 1;
       overflow-y: auto;
       max-height: 350px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
     }
     li {
       background: white;
@@ -100,63 +107,94 @@
       border-radius: 4px;
       display: flex;
       flex-direction: column;
-      font-size: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     li .todo-top {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-    }
-    li .todo-text {
-      flex-grow: 1;
-      margin-left: 8px;
-      user-select: none;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     li.completed .todo-text {
       text-decoration: line-through;
       color: #777;
-    }
-    li button {
-      background: #007bff;
-      padding: 6px 10px;
-      font-size: 14px;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      white-space: nowrap;
-      margin-left: 10px;
-    }
-    li button:hover {
-      background: #0056b3;
     }
     .timestamps {
       font-size: 12px;
       color: #555;
       margin-top: 4px;
       font-style: italic;
+      white-space: pre-line;
+    }
+    .todo-text {
+      flex-grow: 1;
+      font-weight: 500;
+      word-break: break-word;
+    }
+    li button {
+      background: #dc3545;
+      border: none;
+      padding: 5px 10px;
+      color: white;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+    }
+    li button:hover {
+      background: #a71d2a;
+    }
+    @media (max-width: 700px) {
+      #categoriesContainer {
+        flex-direction: column;
+        align-items: center;
+      }
+      .category-section {
+        width: 90%;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>To-Do List dengan Group/Category dan Timestamp Otomatis</h1>
+  <h1>To-Do List Realtime Firebase</h1>
 
   <div class="input-group">
-    <input type="text" id="categoryInput" placeholder="Tambah / edit kategori baru..." />
-    <button id="addCategoryBtn">Tambah Kategori</button>
+    <input type="text" id="categoryInput" placeholder="Tambah kategori baru..." aria-label="Input tambah kategori">
+    <button id="addCategoryBtn" aria-label="Tambah kategori">Tambah Kategori</button>
   </div>
 
   <div class="input-group">
-    <input type="text" id="todoInput" placeholder="Tambah tugas baru..." />
-    <input type="text" id="noSJInput" placeholder="No SJ" />
-    <input type="date" id="tglBarangSampaiInput" />
-    <select id="categorySelect"></select>
-    <button id="addTodoBtn">Tambah Tugas</button>
+    <input type="text" id="todoInput" placeholder="Tambah tugas baru..." aria-label="Input tambah tugas">
+    <input type="text" id="noSJInput" placeholder="No SJ" aria-label="Input nomor SJ">
+    <input type="date" id="tglBarangSampaiInput" aria-label="Input tanggal barang sampai">
+    <select id="categorySelect" aria-label="Pilih kategori tugas"><option value="1757407091841">adsasda</option></select>
+    <button id="addTodoBtn" aria-label="Tambah tugas">Tambah Tugas</button>
   </div>
 
-  <div id="categoriesContainer"></div>
+  <div id="categoriesContainer" aria-live="polite" aria-relevant="additions removals"><div class="category-section"><div class="category-header"><input aria-label="Ubah nama kategori adsasda"><button aria-label="Hapus kategori adsasda">Hapus Kategori</button></div><ul><li class=""><div class="todo-top"><input type="checkbox" aria-label="Tandai tugas &quot;asdada&quot; sebagai selesai"><span class="todo-text">asdada</span><button aria-label="Hapus tugas &quot;asdada&quot;">Hapus</button></div><div class="timestamps">Dibuat: 09/09/2025, 15.38</div></li><li class="completed"><div class="todo-top"><input type="checkbox" aria-label="Tandai tugas &quot;asda&quot; sebagai selesai"><span class="todo-text">asda</span><button aria-label="Hapus tugas &quot;asda&quot;">Hapus</button></div><div class="timestamps">Dibuat: 09/09/2025, 15.38
+Selesai: 09/09/2025, 15.38
+No SJ: asda</div></li></ul></div></div>
 
   <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzy3ZHEPW4GNta2Xf5M91-uoxdm6T7Rl4",
+      authDomain: "to-do-list-irfan.firebaseapp.com",
+      databaseURL: "https://to-do-list-irfan-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "to-do-list-irfan",
+      storageBucket: "to-do-list-irfan.appspot.com",
+      messagingSenderId: "968090928930",
+      appId: "1:968090928930:web:fd7dbd1bb811ac3417077b",
+      measurementId: "G-SC2NWVC37N"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Elements
     const categoryInput = document.getElementById('categoryInput');
     const addCategoryBtn = document.getElementById('addCategoryBtn');
     const todoInput = document.getElementById('todoInput');
@@ -166,56 +204,86 @@
     const addTodoBtn = document.getElementById('addTodoBtn');
     const categoriesContainer = document.getElementById('categoriesContainer');
 
-    let categories = JSON.parse(localStorage.getItem('categories')) || [];
+    let categories = [];
 
     function saveCategories() {
-      localStorage.setItem('categories', JSON.stringify(categories));
+      db.ref("categories").set(categories).catch(error => {
+        alert("Gagal menyimpan data: " + error.message);
+      });
     }
 
     function renderCategorySelect() {
       categorySelect.innerHTML = '';
-      categories.forEach(cat => {
+      if (categories.length === 0) {
         const option = document.createElement('option');
-        option.value = cat.id;
-        option.textContent = cat.name;
+        option.value = '';
+        option.textContent = '-- Tidak ada kategori --';
         categorySelect.appendChild(option);
-      });
+        categorySelect.disabled = true;
+      } else {
+        categories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.id;
+          option.textContent = cat.name;
+          categorySelect.appendChild(option);
+        });
+        categorySelect.disabled = false;
+      }
     }
 
     function formatDateTime(dateStr) {
-      if(!dateStr) return '';
+      if (!dateStr) return '';
       const d = new Date(dateStr);
-      return d.toLocaleString('id-ID', { 
+      if (isNaN(d)) return '';
+      return d.toLocaleString('id-ID', {
         year: 'numeric', month: '2-digit', day: '2-digit',
         hour: '2-digit', minute: '2-digit'
       });
     }
 
     function formatDateOnly(dateStr) {
-      if(!dateStr) return '';
+      if (!dateStr) return '';
       const d = new Date(dateStr);
-      return d.toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      if (isNaN(d)) return '';
+      return d.toLocaleDateString('id-ID', {
+        year: 'numeric', month: '2-digit', day: '2-digit'
+      });
     }
 
     function renderCategories() {
       categoriesContainer.innerHTML = '';
+      if (categories.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'Belum ada kategori. Silakan tambah kategori terlebih dahulu.';
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.color = '#666';
+        categoriesContainer.appendChild(emptyMessage);
+        renderCategorySelect();
+        return;
+      }
+
       categories.forEach(cat => {
         const section = document.createElement('div');
         section.className = 'category-section';
 
+        // Header (kategori + hapus)
         const header = document.createElement('div');
         header.className = 'category-header';
 
         const input = document.createElement('input');
-        input.type = 'text';
         input.value = cat.name;
+        input.setAttribute('aria-label', `Ubah nama kategori ${cat.name}`);
         input.addEventListener('change', e => {
           const newName = e.target.value.trim();
-          if(newName) {
+          if (newName) {
+            // Cek nama kategori unik (case-insensitive)
+            if (categories.some(c => c.id !== cat.id && c.name.toLowerCase() === newName.toLowerCase())) {
+              alert('Nama kategori sudah ada!');
+              e.target.value = cat.name;
+              return;
+            }
             cat.name = newName;
             saveCategories();
-            renderCategorySelect();
-            renderCategories();
           } else {
             e.target.value = cat.name;
           }
@@ -223,12 +291,11 @@
 
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Hapus Kategori';
+        delBtn.setAttribute('aria-label', `Hapus kategori ${cat.name}`);
         delBtn.onclick = () => {
-          if(confirm(`Hapus kategori "${cat.name}"? Semua tugas di dalamnya juga akan terhapus.`)) {
+          if(confirm(`Hapus kategori "${cat.name}" beserta semua tugas di dalamnya?`)) {
             categories = categories.filter(c => c.id !== cat.id);
             saveCategories();
-            renderCategorySelect();
-            renderCategories();
           }
         };
 
@@ -236,114 +303,113 @@
         header.appendChild(delBtn);
         section.appendChild(header);
 
+        // Daftar tugas
         const ul = document.createElement('ul');
 
+        if (!cat.todos) cat.todos = [];
         cat.todos.forEach((todo, idx) => {
           const li = document.createElement('li');
           li.className = todo.completed ? 'completed' : '';
 
-          // Top row: checkbox, teks tugas, tombol hapus
           const topDiv = document.createElement('div');
           topDiv.className = 'todo-top';
 
+          // Checkbox
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.checked = todo.completed;
+          checkbox.setAttribute('aria-label', `Tandai tugas "${todo.text}" sebagai selesai`);
           checkbox.addEventListener('change', () => {
             todo.completed = checkbox.checked;
-            if(checkbox.checked) {
-              todo.completedAt = new Date().toISOString();
-            } else {
-              todo.completedAt = null;
-            }
+            todo.completedAt = checkbox.checked ? new Date().toISOString() : null;
             saveCategories();
-            renderCategories();
           });
 
+          // Teks tugas
           const todoText = document.createElement('span');
           todoText.textContent = todo.text;
           todoText.className = 'todo-text';
 
-          const delTodoBtn = document.createElement('button');
-          delTodoBtn.textContent = 'Hapus';
-          delTodoBtn.onclick = () => {
+          // Tombol hapus tugas
+          const delBtn = document.createElement('button');
+          delBtn.textContent = 'Hapus';
+          delBtn.setAttribute('aria-label', `Hapus tugas "${todo.text}"`);
+          delBtn.onclick = () => {
             cat.todos.splice(idx, 1);
             saveCategories();
-            renderCategories();
           };
 
           topDiv.appendChild(checkbox);
           topDiv.appendChild(todoText);
-          topDiv.appendChild(delTodoBtn);
+          topDiv.appendChild(delBtn);
+
+          // Info tambahan tugas
+          const info = document.createElement('div');
+          info.className = 'timestamps';
+          let infoText = `Dibuat: ${formatDateTime(todo.createdAt)}`;
+          if (todo.completed) infoText += `\nSelesai: ${formatDateTime(todo.completedAt)}`;
+          if (todo.noSJ) infoText += `\nNo SJ: ${todo.noSJ}`;
+          if (todo.tglBarangSampai) infoText += `\nTiba: ${formatDateOnly(todo.tglBarangSampai)}`;
+          info.textContent = infoText;
+
           li.appendChild(topDiv);
-
-          // Timestamp & info tambahan
-          const timestampsDiv = document.createElement('div');
-          timestampsDiv.className = 'timestamps';
-
-          const createdAtStr = todo.createdAt ? formatDateTime(todo.createdAt) : '';
-          const completedAtStr = todo.completedAt ? formatDateTime(todo.completedAt) : '';
-          const tglBarangSampaiStr = todo.tglBarangSampai ? formatDateOnly(todo.tglBarangSampai) : '';
-          const noSJStr = todo.noSJ || '';
-
-          timestampsDiv.innerHTML = `
-            Dibuat pada: <b>${createdAtStr || '-'}</b><br>
-            ${todo.completed ? `Selesai pada: <b>${completedAtStr}</b><br>` : ''}
-            ${noSJStr ? `No SJ: <b>${noSJStr}</b><br>` : ''}
-            ${tglBarangSampaiStr ? `Tanggal Barang Sampai: <b>${tglBarangSampaiStr}</b>` : ''}
-          `;
-
-          li.appendChild(timestampsDiv);
-
+          li.appendChild(info);
           ul.appendChild(li);
         });
 
         section.appendChild(ul);
         categoriesContainer.appendChild(section);
       });
+
+      renderCategorySelect();
     }
 
+    // Tambah kategori
     addCategoryBtn.onclick = () => {
       const name = categoryInput.value.trim();
-      if(!name) {
-        alert('Nama kategori tidak boleh kosong');
+      if (!name) {
+        alert('Nama kategori tidak boleh kosong.');
+        categoryInput.focus();
         return;
       }
-      if(categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-        alert('Kategori sudah ada');
+      if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert('Kategori sudah ada.');
+        categoryInput.focus();
         return;
       }
       categories.push({ id: Date.now(), name, todos: [] });
       categoryInput.value = '';
       saveCategories();
-      renderCategorySelect();
-      renderCategories();
     };
 
+    // Tambah tugas baru
     addTodoBtn.onclick = () => {
-      const todo = todoInput.value.trim();
+      const todoText = todoInput.value.trim();
       const noSJ = noSJInput.value.trim();
       const tglBarangSampai = tglBarangSampaiInput.value;
+      const selectedId = Number(categorySelect.value);
 
-      if(!todo) {
-        alert('Tugas tidak boleh kosong');
+      if (!todoText) {
+        alert('Isi tugasnya dulu.');
+        todoInput.focus();
         return;
       }
-      if(!categorySelect.value) {
-        alert('Pilih kategori terlebih dahulu');
-        return;
-      }
-
-      const selectedCatId = parseInt(categorySelect.value);
-      const cat = categories.find(c => c.id === selectedCatId);
-      if(!cat) {
-        alert('Kategori tidak ditemukan');
+      if (!selectedId) {
+        alert('Pilih kategori terlebih dahulu.');
+        categorySelect.focus();
         return;
       }
 
-      cat.todos.push({ 
-        text: todo, 
-        completed: false, 
+      const cat = categories.find(c => c.id === selectedId);
+      if (!cat) {
+        alert('Kategori tidak ditemukan.');
+        return;
+      }
+
+      if (!cat.todos) cat.todos = [];
+      cat.todos.push({
+        text: todoText,
+        completed: false,
         createdAt: new Date().toISOString(),
         completedAt: null,
         noSJ,
@@ -353,25 +419,25 @@
       todoInput.value = '';
       noSJInput.value = '';
       tglBarangSampaiInput.value = '';
-
       saveCategories();
-      renderCategories();
     };
 
-    function init() {
-      renderCategorySelect();
+    // Listener realtime
+    db.ref("categories").on("value", snapshot => {
+      const data = snapshot.val();
+      categories = Array.isArray(data) ? data.filter(Boolean) : (data ? Object.values(data) : []);
+      
+      // Normalisasi: pastikan tiap kategori ada id dan todos
+      categories = categories.map(cat => ({
+        id: cat.id || Date.now(),
+        name: cat.name || "Kategori tanpa nama",
+        todos: Array.isArray(cat.todos) ? cat.todos : []
+      }));
+
       renderCategories();
-
-      if(categories.length === 0) {
-        categories.push({ id: Date.now(), name: 'Umum', todos: [] });
-        saveCategories();
-        renderCategorySelect();
-        renderCategories();
-      }
-    }
-
-    init();
+    });
   </script>
 
-</body>
-</html>
+
+
+</body></html>
